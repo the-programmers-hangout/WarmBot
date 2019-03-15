@@ -8,22 +8,20 @@ import kotlin.system.exitProcess
 fun main(args: Array<String>) {
     val token = args.first()
 
-        if(token == "UNSET") {
+    if(token == "UNSET") {
         println("You must specify the token with the -e flag when running via docker.")
         System.exit(-1)
     }
 
     startBot(token) {
+        jda.getTextChannelById(args.component2()).htmlString()
+        exitProcess(0)
 
         configure {
             prefix = "!"
             globalPath = "me.aberrantfox.warmbot"
         }
 
-
         jda.presence.setPresence(Game.of(Game.GameType.DEFAULT, "DM to contact Staff"), true)
-//
-        jda.getTextChannelById("555984239343042573").htmlString()
-         exitProcess(0)
     }
 }
