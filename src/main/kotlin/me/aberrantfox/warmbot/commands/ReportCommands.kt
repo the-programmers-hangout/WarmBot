@@ -37,8 +37,7 @@ fun reportCommands(configuration: Configuration, loggingService: LoggingService)
             if (note.isNotEmpty())
                 archiveChannel.sendMessage(note).queue()
 
-            archiveChannel.sendFile(it.channel.archiveString(configuration.prefix).toByteArray(),
-                "$${it.channel.name}.txt").queue {
+            archiveChannel.sendFile(it.channel.htmlString(), "$${it.channel.name}.html").queue {
                 channel.delete().queue()
             }
 
