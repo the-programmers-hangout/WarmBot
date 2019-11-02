@@ -3,8 +3,8 @@ package me.aberrantfox.warmbot.listeners
 import com.google.common.eventbus.Subscribe
 import me.aberrantfox.kjdautils.api.dsl.embed
 import me.aberrantfox.warmbot.services.*
-import net.dv8tion.jda.core.events.guild.GuildJoinEvent
-import net.dv8tion.jda.core.events.guild.member.*
+import net.dv8tion.jda.api.events.guild.GuildJoinEvent
+import net.dv8tion.jda.api.events.guild.member.*
 import java.awt.Color
 
 class GuildMigrationListener(val configuration: Configuration, private val guildService: GuildService) {
@@ -25,7 +25,7 @@ class GuildMigrationListener(val configuration: Configuration, private val guild
 
             report.reportToChannel()?.sendMessage(embed {
                 addField("User has rejoined server!", "This report is now reactivated.", false)
-                setColor(Color.green)
+                color = Color.green
             })?.queue()
 
             if (member.isDetained())
@@ -42,13 +42,13 @@ class GuildMigrationListener(val configuration: Configuration, private val guild
         val report = user.userToReport() ?: return
         if (report.guildId != guild.id) return
 
-        val message = if (guild.banList.complete().any { it.user.id == user.id }) "was banned from" else "has left"
+        val message = if (guild.retrieveBanList().complete().any { it.user.id == user.id }) "was banned from" else "has left"
 
         report.reportToChannel()?.sendMessage(createResponse(message))?.queue()
     }
 
     private fun createResponse(message: String) = embed {
         addField("User no longer in server!", "This user $message the server.", false)
-        setColor(Color.red)
+        color = Color.red
     }
 }

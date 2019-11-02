@@ -1,14 +1,14 @@
 package me.aberrantfox.warmbot.commands
 
-import me.aberrantfox.kjdautils.api.dsl.*
+import me.aberrantfox.kjdautils.api.dsl.command.*
+import me.aberrantfox.kjdautils.api.dsl.embed
 import me.aberrantfox.kjdautils.extensions.jda.*
-import me.aberrantfox.kjdautils.internal.command.arguments.SentenceArg
+import me.aberrantfox.kjdautils.internal.arguments.*
 import me.aberrantfox.kjdautils.internal.logging.DefaultLogger
-import me.aberrantfox.warmbot.arguments.MemberArg
 import me.aberrantfox.warmbot.extensions.*
 import me.aberrantfox.warmbot.messages.Locale
 import me.aberrantfox.warmbot.services.*
-import net.dv8tion.jda.core.entities.*
+import net.dv8tion.jda.api.entities.*
 import java.awt.Color
 import java.util.concurrent.ConcurrentHashMap
 
@@ -18,13 +18,13 @@ fun reportHelperCommands(configuration: Configuration, reportService: ReportServ
 
     data class EmbedData(val color: Color, val topic: String, val openMessage: String, val initialMessage: String)
 
-    fun openReport(event: CommandEvent, targetUser: User, guild: Guild, userEmbed: MessageEmbed, embedData: EmbedData, detain: Boolean = false) {
+    fun openReport(event: CommandEvent<*>, targetUser: User, guild: Guild, userEmbed: MessageEmbed, embedData: EmbedData, detain: Boolean = false) {
         val guildId = guild.id
         val reportCategory = configuration.getGuildConfig(guildId)!!.reportCategory.idToCategory()
 
         targetUser.openPrivateChannel().queue {
             it.sendMessage(userEmbed).queue({
-                reportCategory.createTextChannel(targetUser.name).queue { channel ->
+                reportCategory?.createTextChannel(targetUser.name)?.queue { channel ->
                     channel as TextChannel
 
                     val message = embedData.initialMessage
@@ -34,12 +34,12 @@ fun reportHelperCommands(configuration: Configuration, reportService: ReportServ
                             targetUser.sendPrivateMessage(message, DefaultLogger())
                             message
                         } else {
-                            Locale.messages.DEFAULT_INITIAL_MESSAGE
+                            Locale.DEFAULT_INITIAL_MESSAGE
                         }
 
                     val reportEmbed = embed {
-                        setColor(embedData.color)
-                        setThumbnail(targetUser.effectiveAvatarUrl)
+                        color = embedData.color
+                        thumbnail = targetUser.effectiveAvatarUrl
                         addField(embedData.topic,
                             "${targetUser.descriptor()} :: ${targetUser.asMention}",
                             false)
@@ -68,20 +68,18 @@ fun reportHelperCommands(configuration: Configuration, reportService: ReportServ
 
     command("Open") {
         requiresGuild = true
-        description = Locale.messages.OPEN_DESCRIPTION
-        expect(arg(MemberArg), arg(SentenceArg("Initial Message"), optional = true))
-        execute { event ->
-            val targetMember = event.args.component1() as Member
-            val message = event.args.component2() as String
+        description = Locale.OPEN_DESCRIPTION
+        execute(MemberArg, SentenceArg("Initial Message").makeOptional("")) { event ->
+            val (targetMember, message) = event.args
             val guild = event.message.guild
 
             if (!hasValidState(event, guild, targetMember.user))
                 return@execute
 
             val userEmbed = embed {
-                setColor(Color.green)
-                setThumbnail(guild.iconUrl)
-                addField("You've received a message from the staff of ${guild.name}!", Locale.messages.BOT_DESCRIPTION, false)
+                color = Color.green
+                thumbnail = guild.iconUrl
+                addField("You've received a message from the staff of ${guild.name}!", Locale.BOT_DESCRIPTION, false)
             }
 
             val embedData = EmbedData(Color.green, "New Report Opened!", "This report was opened by", message)
@@ -91,11 +89,9 @@ fun reportHelperCommands(configuration: Configuration, reportService: ReportServ
 
     command("Detain") {
         requiresGuild = true
-        description = Locale.messages.DETAIN_DESCRIPTION
-        expect(arg(MemberArg), arg(SentenceArg("Initial Message"), optional = true))
-        execute { event ->
-            val targetMember = event.args.component1() as Member
-            val message = event.args.component2() as String
+        description = Locale.DETAIN_DESCRIPTION
+        execute(MemberArg, SentenceArg("Initial Message").makeOptional("")) { event ->
+            val (targetMember, message) = event.args
             val guild = event.message.guild
 
             if (moderationService.hasStaffRole(targetMember))
@@ -110,9 +106,9 @@ fun reportHelperCommands(configuration: Configuration, reportService: ReportServ
                 return@execute
 
             val userEmbed = embed {
-                setColor(Color.red)
-                setThumbnail(guild.iconUrl)
-                addField("You've have been detained by the staff of ${guild.name}!", Locale.messages.USER_DETAIN_MESSAGE, false)
+                color = Color.red
+                thumbnail = guild.iconUrl
+                addField("You've have been detained by the staff of ${guild.name}!", Locale.USER_DETAIN_MESSAGE, false)
             }
 
             val embedData = EmbedData(Color.red, "User Detained!", "This user was detained by", message)
@@ -122,10 +118,9 @@ fun reportHelperCommands(configuration: Configuration, reportService: ReportServ
 
     command("Release") {
         requiresGuild = true
-        description = Locale.messages.RELEASE_DESCRIPTION
-        expect(MemberArg)
-        execute {
-            val targetMember = it.args.component1() as Member
+        description = Locale.RELEASE_DESCRIPTION
+        execute(MemberArg) {
+            val targetMember = it.args.first
 
             if (!targetMember.isDetained())
                 return@execute it.respond("This member is not detained.")
@@ -137,7 +132,7 @@ fun reportHelperCommands(configuration: Configuration, reportService: ReportServ
 
     command("CloseAll") {
         requiresGuild = true
-        description = Locale.messages.CLOSE_ALL_DESCRIPTION
+        description = Locale.CLOSE_ALL_DESCRIPTION
         execute {
             val guild = it.guild!!
             val reportsFromGuild = reportService.getReportsFromGuild(guild.id)
@@ -145,7 +140,7 @@ fun reportHelperCommands(configuration: Configuration, reportService: ReportServ
             if (reportsFromGuild.isEmpty()) return@execute it.respond("There are no reports to close.")
 
             reportsFromGuild.forEach { report ->
-                val channel = report.channelId.idToTextChannel()
+                val channel = report.channelId.idToTextChannel() ?: return@execute
 
                 channel.delete().queue()
                 loggingService.commandClose(guild, channel.name, it.author)
@@ -156,12 +151,12 @@ fun reportHelperCommands(configuration: Configuration, reportService: ReportServ
     }
 }
 
-private fun hasValidState(event: CommandEvent, currentGuild: Guild, targetUser: User): Boolean {
+private fun hasValidState(event: CommandEvent<*>, currentGuild: Guild, targetUser: User): Boolean {
     if (!targetUser.hasReportChannel())
         return true
 
     val report = targetUser.userToReport() ?: return false
-    val reportGuild = report.guildId.idToGuild()
+    val reportGuild = report.guildId.idToGuild() ?: return false
 
     event.respond("The target user already has an open report " +
         if (reportGuild == currentGuild) {

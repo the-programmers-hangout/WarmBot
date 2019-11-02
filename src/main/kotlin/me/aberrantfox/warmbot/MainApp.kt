@@ -2,7 +2,7 @@ package me.aberrantfox.warmbot
 
 import me.aberrantfox.kjdautils.api.startBot
 import me.aberrantfox.warmbot.messages.Locale
-import net.dv8tion.jda.core.entities.Game
+import net.dv8tion.jda.api.entities.Activity
 import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
@@ -14,13 +14,6 @@ fun main(args: Array<String>) {
     }
 
     startBot(token) {
-        configure {
-            globalPath = "me.aberrantfox.warmbot"
-
-            registerInjectionObject(this)
-            registerInjectionObject(this@startBot.container)
-        }
-
-        jda.presence.game = Game.playing(Locale.messages.DEFAULT_DISCORD_PRESENCE)
+        discord.jda.presence.activity = Activity.playing(Locale.DEFAULT_DISCORD_PRESENCE)
     }
 }

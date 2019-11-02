@@ -3,7 +3,7 @@ package me.aberrantfox.warmbot.services
 import me.aberrantfox.kjdautils.api.annotation.Data
 
 object EnvironmentSettings {
-    var IS_TESTING_ENVIRONMENT = false
+    var IS_TESTING_ENVIRONMENT = true
 }
 
 data class LoggingConfiguration(var loggingChannel: String = "insert-id",
@@ -15,7 +15,7 @@ data class LoggingConfiguration(var loggingChannel: String = "insert-id",
                                 val logArchive: Boolean = true,
                                 val logClose: Boolean = true)
 
-data class GuildConfiguration(var guildId: String = "insert-id",
+data class GuildConfiguration(val guildId: String = "insert-id",
                               var reportCategory: String = "insert-id",
                               var archiveChannel: String = "insert-id",
                               var staffRoleName: String = "Staff",
@@ -24,9 +24,8 @@ data class GuildConfiguration(var guildId: String = "insert-id",
 
 @Data(configFile)
 data class Configuration(val ownerId: String = "insert-id",
-                         val prefix: String = "!",
+                         var prefix: String = "!",
                          val maxOpenReports: Int = 50,
-                         val generateDocsAtRuntime: Boolean = false,
                          val whitelist: MutableList<String> = ArrayList(),
                          val guildConfigurations: MutableList<GuildConfiguration> = mutableListOf(GuildConfiguration())) {
     fun hasGuildConfig(guildId: String) = getGuildConfig(guildId) != null

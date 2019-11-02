@@ -1,15 +1,12 @@
 package me.aberrantfox.warmbot.services
 
 import me.aberrantfox.kjdautils.api.annotation.Service
-import me.aberrantfox.kjdautils.api.dsl.KJDAConfiguration
+import me.aberrantfox.kjdautils.discord.Discord
 
 @Service
-class PrefixService(configuration: Configuration, private val kjdaConfiguration: KJDAConfiguration) {
-    init {
-        setPrefix(configuration.prefix)
-    }
-
+class PrefixService(private val configuration: Configuration, private val discord: Discord) {
     fun setPrefix(prefix: String) {
-        kjdaConfiguration.prefix = prefix
+        configuration.prefix = prefix
+        discord.configuration.prefix = prefix
     }
 }

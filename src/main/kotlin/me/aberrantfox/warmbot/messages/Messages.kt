@@ -49,12 +49,7 @@ class Messages (
 
     //Utility commands descriptions
     val PING_DESCRIPTION: String = "",
-    val VERSION_DESCRIPTION: String = "",
-    val AUTHOR_DESCRIPTION: String = "",
-    val SOURCE_DESCRIPTION: String = "",
-    val BOT_INFO_DESCRIPTION: String = "",
     val UPTIME_DESCRIPTION: String = "",
-    val LIST_COMMANDS_DESCRIPTION: String = "",
 
     //Success message
     val SET_REPORT_CATEGORY_SUCCESSFUL: String = "",
@@ -65,12 +60,8 @@ class Messages (
 
     //Fail message
     val FAIL_GUILD_SETUP: String = "",
-    val FAIL_MUST_BE_BOT_OWNER: String = "",
-    val FAIL_MUST_BE_GUILD_OWNER: String = "",
-    val FAIL_TEXT_CHANNEL_ONLY: String = "",
-    val FAIL_COMMAND_NOT_IN_GUILD: String = "",
+    val FAIL_MISSING_CLEARANCE: String = "",
     val FAIL_COULD_NOT_FIND_ROLE: String = "",
-    val FAIL_MISSING_STAFF_ROLE: String = "",
     val FAIL_GUILD_NOT_WHITELISTED: String = "",
     val FAIL_GUILD_NOT_CONFIGURED: String = "",
 
